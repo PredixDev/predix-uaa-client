@@ -13,6 +13,7 @@ Use client credentials to get a bearer token.
 NOTE: This call can be made for each outgoing request.  The library will cache the token until expiry, so subsequent calls will resolve instantaneously.
 
 ```javascript
+const uaa_util = require('predix-uaa-client');
 // Call with client credentials (UAAUrl, ClientID, ClientSecret),
 // will fetch a client token using these credentials.
 // In this case the client needs authorized_grant_types: client_credentials
@@ -25,7 +26,7 @@ uaa_util.getToken(url, clientId, clientSecret).then((token) => {
             Authorization: 'Bearer ' + token.access_token
         }
     }).then((data) => {
-        console.log('Got ' + data + ' from service);
+        console.log('Got ' + data + ' from service');
     }).catch((err) => {
         console.error('Error getting data', err);
     });
@@ -39,6 +40,7 @@ Use a refresh token get a new access_token for a user.
 NOTE: This will NOT cache, this should only be called when a new user access token is required.
 
 ```javascript
+const uaa_util = require('predix-uaa-client');
 // Call with client credentials (UAAUrl, ClientID, ClientSecret, RefreshToken),
 // will fetch an access token for the user represented by the refresh token.
 // In this case the client needs authorized_grant_types: refresh_token
