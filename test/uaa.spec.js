@@ -276,4 +276,38 @@ describe('#UAA Tokens', () => {
             done();
         });
     });
+
+    it('should allow only one pending token request per client/refresh/host combination', (done) => {
+        // Make the token generation have a short delay
+        let v = 55;
+        let stub = sinon.stub(request, 'post', (opt, cb) => {
+            setTimeout(() => {
+                cb(null, { statusCode: 200 }, JSON.stringify({ access_token: 'test-token-'+(v++), expires_in: 1000 }));
+            }, 10);
+        });
+
+        // Multiple calls using the same url/clientId should be resolved together
+        const prom1 = uaa_util.getToken(url, clientId, clientSecret);
+        const prom2 = uaa_util.getToken(url, clientId, clientSecret);
+        const prom3 = uaa_util.getToken(url, 'anotherUser', 'anotherPass');
+
+        prom1.then((token1) => {
+            prom2.then((token2) => {
+                prom3.then((token3) => {
+                    // The call should go out only twice, as 2 of the requests were the same
+                    expect(stub.calledTwice).to.be.true;
+                    expect(token1.access_token).to.equal('test-token-55');
+                    expect(token2.access_token).to.equal('test-token-55');
+                    expect(token3.access_token).to.equal('test-token-56');
+                    done();
+                }).catch((err) => {
+                    done(err);
+                });
+            }).catch((err) => {
+                done(err);
+            });
+        }).catch((err) => {
+            done(err);
+        });
+    });
 });
