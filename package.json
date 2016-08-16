@@ -4,8 +4,8 @@
   "description": "Node module to get a token from UAA using client credentials or refresh tokens",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -R spec test/uaa.spec",
-    "coverage": "istanbul cover _mocha -- -R spec test/uaa.spec"
+    "test": "mocha -R spec test/uaa.spec.js",
+    "coverage": "istanbul cover _mocha -- -R spec test/uaa.spec.js"
   },
   "repository": {
     "type": "git",

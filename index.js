@@ -23,6 +23,18 @@ let uaa_utils = {};
 // as and when necessary.
 let client_token_cache = {};
 
+// This will hold the promises of pending requests.  This avoids requesting
+// multiple redundant tokens for a single user or client.
+let pending_requests = {};
+
+// Helper method to create a key that can be used to represent a unique request
+const requestKey = (uaaUri, clientId, clientSecret, refreshToken) => {
+    const crypto = require('crypto');
+    const hash = crypto.createHash('sha256');
+    hash.update(`${uaaUri}__${clientId}__${clientSecret}${refreshToken ? '__' + refreshToken : ''}`);
+    return hash.digest('hex');
+};
+
 /**
  * This function provides 2 modes of operation.
  *
@@ -53,9 +65,33 @@ uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken) => {
         throw new Error(msg);
     }
 
-    // URL for the token is <UAA_Server>/oauth/token
-    return new Promise((resolve, reject) => {
+    // Pending request key
+    const request_key = requestKey(uaaUri, clientId, clientSecret, refreshToken);
 
+    // Check if an existing request is in progress for this client/user
+    let makeRequest = false;
+    if(!Array.isArray(pending_requests[request_key])) {
+        pending_requests[request_key] = new Array();
+        makeRequest = true;
+    }
+
+    // Add a new promise for this request to the array
+    const getProm = () => {
+        let resolve = null;
+        let reject = null;
+        let p = new Promise((rs, rj) => {
+            resolve = rs;
+            reject = rj;
+        });
+        return { prom: p, resolve: resolve, reject: reject };
+    };
+
+    let resolvable = getProm();
+    pending_requests[request_key].push(resolvable);
+
+    // URL for the token is <UAA_Server>/oauth/token
+    // Is this the 'thread' that needs to make the real call?
+    if(makeRequest) {
         let alreadyResolved = false;
         let cacheable = false;
         const cache_key = `${uaaUri}__${clientId}`;
@@ -76,8 +112,9 @@ uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken) => {
             // Check for a current token
             access_token = client_token_cache[cache_key];
             if(access_token && access_token.expire_time > now) {
-                // Already have it.
-                resolve(access_token);
+                // Resolve all waiting promises.
+                pending_requests[request_key].forEach(p => p.resolve(access_token));
+                delete pending_requests[request_key];
                 alreadyResolved = true;
             }
 
@@ -111,7 +148,9 @@ uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken) => {
 
                     // If we responded with a cached token, don't throw the error
                     if(!alreadyResolved) {
-                        reject(err);
+                      // Reject all waiting promises.
+                      pending_requests[request_key].forEach(p => p.reject(err));
+                      delete pending_requests[request_key];
                     }
                 } else {
                     debug('Fetched new token');
@@ -128,7 +167,9 @@ uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken) => {
                     access_token = newToken;
                     // If we responded with a cached token, don't resolve again
                     if(!alreadyResolved) {
-                        resolve(access_token);
+                        // Resolve all waiting promises.
+                        pending_requests[request_key].forEach(p => p.resolve(access_token));
+                        delete pending_requests[request_key];
                     }
 
                     if(cacheable) {
@@ -138,7 +179,8 @@ uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken) => {
                 }
             });
         }
-    });
+    };
+    return resolvable.prom;
 }
 
 /**
