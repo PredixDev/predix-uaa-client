@@ -146,12 +146,16 @@ describe('#UAA Tokens', () => {
     it('should fail if getting an error while calling UAA', (done) => {
         // We expect a POST call with the client credentials as Basic Auth.
         let stub = sinon.stub(request, 'post');
-        stub.yields('nope', { statusCode: 403 }, null);
+        stub.yields(null, { statusCode: 403 }, null);
 
         uaa_util.getToken(url, clientId, clientSecret).then((token) => {
             done(new Error('Expected error, but got token'));
         }).catch((err) => {
+            expect(err).to.be.an('error');
+            expect(err.statusCode).to.equal(403);
             done();
+        }).catch((err) => {
+            done(err);
         });
     });
 
@@ -163,7 +167,27 @@ describe('#UAA Tokens', () => {
         uaa_util.getToken(url, clientId, clientSecret).then((token) => {
             done(new Error('Expected error, but got token'));
         }).catch((err) => {
+            expect(err).to.be.an('error');
+            expect(err.statusCode).to.equal(502);
             done();
+        }).catch((err) => {
+            done(err);
+        });
+    });
+
+    it('should fail if there was a network error while calling UAA', (done) => {
+        // We expect a POST call with the client credentials as Basic Auth.
+        let stub = sinon.stub(request, 'post');
+        stub.yields(new Error('ECONNREFUSED, Connection refused'), null, null);
+
+        uaa_util.getToken(url, clientId, clientSecret).then((token) => {
+            done(new Error('Expected error, but got token'));
+        }).catch((err) => {
+            expect(err).to.be.an('error');
+            expect(err.statusCode).to.equal(502);
+            done();
+        }).catch((err) => {
+            done(err);
         });
     });
 
@@ -181,7 +205,7 @@ describe('#UAA Tokens', () => {
             expect(token.access_token).to.equal('test-token-1');
 
             // Make the next call fail
-            stub.yields('Oh no', { statusCode: 403 }, null);
+            stub.yields(null, { statusCode: 403 }, null);
 
             // Get it again, it should give the first token, but still call the stub again
             uaa_util.getToken(url, clientId, clientSecret).then((token) => {
@@ -268,12 +292,16 @@ describe('#UAA Tokens', () => {
     it('should fail to refresh if getting an error while calling UAA', (done) => {
         // We expect a POST call with the client credentials as Basic Auth.
         let stub = sinon.stub(request, 'post');
-        stub.yields('nope', { statusCode: 403 }, null);
+        stub.yields(null, { statusCode: 401 }, null);
 
         uaa_util.getToken(url, clientId, clientSecret, refreshToken).then((token) => {
             done(new Error('Expected error, but got token'));
         }).catch((err) => {
+            expect(err).to.be.an('error');
+            expect(err.statusCode).to.equal(401);
             done();
+        }).catch((err) => {
+            done(err);
         });
     });
 

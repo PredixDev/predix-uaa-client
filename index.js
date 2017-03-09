@@ -143,7 +143,8 @@ uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken) => {
             request.post(options, (err, resp, body) => {
                 const statusCode = (resp) ? resp.statusCode : 502;
                 if(err || statusCode !== 200) {
-                    err = err || 'Error getting token: ' + statusCode;
+                    err = err || new Error('Error getting token: ' + statusCode);
+                    err.statusCode = statusCode;
                     debug('Error getting token from', options.url, err);
 
                     // If we responded with a cached token, don't throw the error
