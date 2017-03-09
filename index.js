@@ -1,6 +1,5 @@
 'use strict'
 const request = require('request');
-const url = require('url');
 const debug = require('debug')('predix-uaa-client');
 
 const renew_secs_before = 60;
