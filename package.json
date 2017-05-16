@@ -1,9 +1,9 @@
 {
   "name": "predix-uaa-client",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Node module to get a token from UAA using client credentials or refresh tokens",
   "main": "index.js",
-  "types":"./predix-uaa-client.d.ts",
+  "types": "./predix-uaa-client.d.ts",
   "scripts": {
     "test": "mocha -R spec test/uaa.spec.js",
     "coverage": "istanbul cover _mocha -- -R spec test/uaa.spec.js"
