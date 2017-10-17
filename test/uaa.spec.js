@@ -338,4 +338,23 @@ describe('#UAA Tokens', () => {
             done(err);
         });
     });
+
+    it('should expose the token type', (done) => {
+        // We expect a POST call with the client credentials as Basic Auth.
+        let stub = sinon.stub(request, 'post');
+        stub.yields(null, { statusCode: 200 }, JSON.stringify({ access_token: 'test-token-1', expires_in: 123, token_type: 'bearer' }));
+
+        uaa_util.getToken(url, clientId, clientSecret).then((token) => {
+            // Result should be our fake token
+            // Check that the UAA call was made correctly
+            expect(stub.calledOnce).to.be.true;
+            expect(stub.calledWith(match({ uri: url })));
+            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }})));
+            expect(token.access_token).to.equal('test-token-1');
+            expect(token.token_type).to.equal('bearer');
+            done();
+        }).catch((err) => {
+            done(err);
+        });
+    });
 });

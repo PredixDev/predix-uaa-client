@@ -161,7 +161,8 @@ uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken) => {
                         access_token: data.access_token,
                         expire_time: now + (data.expires_in * 1000),
                         renew_time: now + ((data.expires_in - renew_secs_before) * 1000),
-                        refresh_token: data.refresh_token
+                        refresh_token: data.refresh_token,
+                        token_type: data.token_type
                     };
 
                     access_token = newToken;
