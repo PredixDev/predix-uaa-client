@@ -8,5 +8,6 @@ declare module "predix-uaa-client" {
         refresh_token: string;
         expire_time: number;
         renew_time: number;
+        token_type: string;
     }
 }
