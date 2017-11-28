@@ -188,9 +188,14 @@ uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken) => {
  *  This function clears all the cached access tokens.
  *  Subsequent calls to getToken will fetch a new token from UAA.
  */
-uaa_utils.clearCache = () => {
+uaa_utils.clearCache = (key) => {
+  if(key){
+    delete client_token_cache[key];
+    debug('clearCache', key);
+  } else {
     client_token_cache = {};
     debug('Cleared token cache');
-}
+  }  
+};
 
 module.exports = uaa_utils;

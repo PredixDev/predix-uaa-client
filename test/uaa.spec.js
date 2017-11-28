@@ -73,6 +73,40 @@ describe('#UAA Tokens', () => {
             done(err);
         });
     });
+    
+    it('should clear cache by key', (done) => {
+      const testCacheKey = `${url}__${clientId}`;
+      // We expect a POST call with the client credentials as Basic Auth.
+      let stub = sinon.stub(request, 'post');
+      stub.yields(null, { statusCode: 200 }, JSON.stringify({ access_token: 'test-token-1', expires_in: 123 }));
+
+      uaa_util.getToken(url, clientId, clientSecret).then((token) => {
+          // Result should be our fake token
+          // Check that the UAA call was made correctly
+          expect(stub.calledOnce).to.be.true;
+          expect(stub.calledWith(match({ uri: url })));
+          expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }})));
+          expect(token.access_token).to.equal('test-token-1');
+
+          stub.yields(null, { statusCode: 200 }, JSON.stringify({ access_token: 'test-token-2', expires_in: 123 }));
+          
+          //clear the key, and should call stub again.
+          uaa_util.clearCache(testCacheKey);
+          
+          // Get it again, it should call our stub again
+          uaa_util.getToken(url, clientId, clientSecret).then((token) => {
+              
+              // Stub should be called twice overall
+              expect(stub.calledTwice).to.be.true;
+              expect(token.access_token).to.equal('test-token-2');
+              done();
+          }).catch((err) => {
+              done(err);
+          });
+      }).catch((err) => {
+          done(err);
+      });
+    });
 
     it('should fetch a new client token from UAA if expiring soon, but give the current one', (done) => {
         // We expect a POST call with the client credentials as Basic Auth.
