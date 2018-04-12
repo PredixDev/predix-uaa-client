@@ -36,8 +36,8 @@ describe('#UAA Tokens', () => {
             // Result should be our fake token
             // Check that the UAA call was made correctly
             expect(stub.calledOnce).to.be.true;
-            expect(stub.calledWith(match({ uri: url })));
-            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }})));
+            expect(stub.calledWith(match({ url }))).to.be.ok;
+            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }}))).to.be.ok;
             expect(token.access_token).to.equal('test-token');
             done();
         }).catch((err) => {
@@ -54,8 +54,8 @@ describe('#UAA Tokens', () => {
             // Result should be our fake token
             // Check that the UAA call was made correctly
             expect(stub.calledOnce).to.be.true;
-            expect(stub.calledWith(match({ uri: url })));
-            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }})));
+            expect(stub.calledWith(match({ url }))).to.be.ok;
+            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }}))).to.be.ok;
             expect(token.access_token).to.equal('test-token-1');
 
             stub.yields(null, { statusCode: 200 }, JSON.stringify({ access_token: 'test-token-2', expires_in: 123 }));
@@ -84,8 +84,8 @@ describe('#UAA Tokens', () => {
           // Result should be our fake token
           // Check that the UAA call was made correctly
           expect(stub.calledOnce).to.be.true;
-          expect(stub.calledWith(match({ uri: url })));
-          expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }})));
+          expect(stub.calledWith(match({ url }))).to.be.ok;
+          expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }}))).to.be.ok;
           expect(token.access_token).to.equal('test-token-1');
 
           stub.yields(null, { statusCode: 200 }, JSON.stringify({ access_token: 'test-token-2', expires_in: 123 }));
@@ -117,8 +117,8 @@ describe('#UAA Tokens', () => {
             // Result should be our fake token
             // Check that the UAA call was made correctly
             expect(stub.calledOnce).to.be.true;
-            expect(stub.calledWith(match({ uri: url })));
-            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }})));
+            expect(stub.calledWith(match({ url }))).to.be.ok;
+            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }}))).to.be.ok;
             expect(token.access_token).to.equal('test-token-1');
 
             stub.yields(null, { statusCode: 200 }, JSON.stringify({ access_token: 'test-token-2', expires_in: 1000 }));
@@ -157,8 +157,8 @@ describe('#UAA Tokens', () => {
             // Result should be our fake token
             // Check that the UAA call was made correctly
             expect(stub.calledOnce).to.be.true;
-            expect(stub.calledWith(match({ uri: url })));
-            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }})));
+            expect(stub.calledWith(match({ url }))).to.be.ok;
+            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }}))).to.be.ok;
             expect(token.access_token).to.equal('test-token-1');
 
             stub.yields(null, { statusCode: 200 }, JSON.stringify({ access_token: 'test-token-2', expires_in: 1000 }));
@@ -234,8 +234,8 @@ describe('#UAA Tokens', () => {
             // Result should be our fake token
             // Check that the UAA call was made correctly
             expect(stub.calledOnce).to.be.true;
-            expect(stub.calledWith(match({ uri: url })));
-            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }})));
+            expect(stub.calledWith(match({ url }))).to.be.ok;
+            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }}))).to.be.ok;
             expect(token.access_token).to.equal('test-token-1');
 
             // Make the next call fail
@@ -275,8 +275,8 @@ describe('#UAA Tokens', () => {
             // Result should be our fake token
             // Check that the UAA call was made correctly
             expect(stub.calledOnce).to.be.true;
-            expect(stub.calledWith(match({ uri: url })));
-            expect(stub.calledWith(match({ form: { grant_type: 'refresh_token' }})));
+            expect(stub.calledWith(match({ url }))).to.be.ok;
+            expect(stub.calledWith(match({ form: { grant_type: 'refresh_token' }}))).to.be.ok;
             expect(token.access_token).to.equal('test-token');
             done();
         }).catch((err) => {
@@ -297,9 +297,9 @@ describe('#UAA Tokens', () => {
             // Result should be our fake token
             // Check that the UAA call was made correctly
             expect(stub.calledOnce).to.be.true;
-            expect(stub.calledWith(match({ uri: url })));
-            expect(stub.calledWith(match({ form: { grant_type: 'refresh_token' }})));
-            expect(stub.calledWith(match({ form: { refresh_token: refreshToken }})));
+            expect(stub.calledWith(match({ url }))).to.be.ok;
+            expect(stub.calledWith(match({ form: { grant_type: 'refresh_token' }}))).to.be.ok;
+            expect(stub.calledWith(match({ form: { refresh_token: refreshToken }}))).to.be.ok;
             expect(token.access_token).to.equal('test-token-1');
 
             // Fake out a new token for the next request
@@ -310,9 +310,9 @@ describe('#UAA Tokens', () => {
                 // Result should be our fake token
                 // Check that the UAA call was made correctly
                 expect(stub.calledTwice).to.be.true;
-                expect(stub.calledWith(match({ uri: url })));
-                expect(stub.calledWith(match({ form: { grant_type: 'refresh_token' }})));
-                expect(stub.calledWith(match({ form: { refresh_token: refreshToken }})));
+                expect(stub.calledWith(match({ url }))).to.be.ok;
+                expect(stub.calledWith(match({ form: { grant_type: 'refresh_token' }}))).to.be.ok;
+                expect(stub.calledWith(match({ form: { refresh_token: refreshToken }}))).to.be.ok;
                 expect(token.access_token).to.equal('test-token-2');
                 done();
             }).catch((err) => {
@@ -382,8 +382,8 @@ describe('#UAA Tokens', () => {
             // Result should be our fake token
             // Check that the UAA call was made correctly
             expect(stub.calledOnce).to.be.true;
-            expect(stub.calledWith(match({ uri: url })));
-            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }})));
+            expect(stub.calledWith(match({ url }))).to.be.ok;
+            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }}))).to.be.ok;
             expect(token.access_token).to.equal('test-token-1');
             expect(token.token_type).to.equal('bearer');
             done();
