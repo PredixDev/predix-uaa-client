@@ -27,6 +27,6 @@
   },
   "dependencies": {
     "debug": "^2.6.9",
-    "request": "^2.83.0"
+    "request": "^2.85.0"
   }
 }
