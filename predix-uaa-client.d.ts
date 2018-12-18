@@ -1,5 +1,5 @@
 declare module "predix-uaa-client" {
-    export function getToken(url: string, clientId: string, clientSecret: string, refreshToken?: string): Promise<IToken>;
+    export function getToken(url: string, clientId: string, clientSecret: string, refreshToken?: string, scopes?: string): Promise<IToken>;
 
     export function clearCache(key: string);
 
