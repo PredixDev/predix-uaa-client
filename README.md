@@ -54,3 +54,22 @@ uaa_util.getToken(url, clientId, clientSecret, refreshToken).then((token) => {
     console.error('Error getting token', err);
 });
 ```
+
+Request scopes if a token with particular scopes (ex. authZ permisions) is required.
+The parameter is passed as a comma separated string of scopes.
+
+```javascript
+const uaa_util = require('predix-uaa-client');
+// Call with client credentials (UAAUrl, ClientID, ClientSecret, null, scopes),
+// will fetch an access token for the user with requested scopes.
+// In this case the client needs authorized_grant_types: refresh_token
+uaa_util.getToken(url, clientId, clientSecret, null, 'scope1,scope2').then((token) => {
+    // New access token is in token.access_token.
+    // New refresh token is in token.refresh_token.
+    console.log('New access token', token.access_token);
+    console.log('New refresh token', token.refresh_token);
+    console.log('New access token expires at', token.expire_time);
+}).catch((err) => {
+    console.error('Error getting token', err);
+});
+```
