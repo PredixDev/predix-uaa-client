@@ -11,6 +11,7 @@ const url = 'https://test.uaa.predix.io/oauth/token';
 const clientId = 'test';
 const clientSecret = 'password';
 const refreshToken = 'ABC';
+const scopes = 'scope1,scope2';
 
 afterEach((done) => {
     // Undo any sinon mocks
@@ -38,6 +39,7 @@ describe('#UAA Tokens', () => {
             expect(stub.calledOnce).to.be.true;
             expect(stub.calledWith(match({ url }))).to.be.ok;
             expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }}))).to.be.ok;
+            expect(stub.neverCalledWith(match({ form: { scopes: 'scopes' }}))).to.be.true;
             expect(token.access_token).to.equal('test-token');
             done();
         }).catch((err) => {
@@ -339,7 +341,7 @@ describe('#UAA Tokens', () => {
         });
     });
 
-    it('should allow only one pending token request per client/refresh/host combination', (done) => {
+    it('should allow only one pending token request per client/refresh/host/scopes combination', (done) => {
         // Make the token generation have a short delay
         let v = 55;
         let stub = sinon.stub(request, 'post', (opt, cb) => {
@@ -348,20 +350,26 @@ describe('#UAA Tokens', () => {
             }, 10);
         });
 
-        // Multiple calls using the same url/clientId should be resolved together
+        // Multiple calls using the same client/refresh/host/scopes should be resolved together
         const prom1 = uaa_util.getToken(url, clientId, clientSecret);
         const prom2 = uaa_util.getToken(url, clientId, clientSecret);
         const prom3 = uaa_util.getToken(url, 'anotherUser', 'anotherPass');
+        const prom4 = uaa_util.getToken(url, 'anotherUser', 'anotherPass', null, scopes);
 
         prom1.then((token1) => {
             prom2.then((token2) => {
                 prom3.then((token3) => {
-                    // The call should go out only twice, as 2 of the requests were the same
-                    expect(stub.calledTwice).to.be.true;
-                    expect(token1.access_token).to.equal('test-token-55');
-                    expect(token2.access_token).to.equal('test-token-55');
-                    expect(token3.access_token).to.equal('test-token-56');
-                    done();
+                    prom4.then((token4) => {
+                        // The call should go out only thrice, as 2 of the requests were the same
+                        expect(stub.calledThrice).to.be.true;
+                        expect(token1.access_token).to.equal('test-token-55');
+                        expect(token2.access_token).to.equal('test-token-55');
+                        expect(token3.access_token).to.equal('test-token-56');
+                        expect(token4.access_token).to.equal('test-token-57');
+                        done();
+                    }).catch((err) => {
+                        done(err);
+                    });
                 }).catch((err) => {
                     done(err);
                 });
@@ -391,4 +399,26 @@ describe('#UAA Tokens', () => {
             done(err);
         });
     });
+
+    it('should request scopes when calling UAA if scopes parameter given', (done) => {
+        // We expect a POST call with the client credentials as Basic Auth.
+        let stub = sinon.stub(request, 'post');
+        stub.yields(null, { statusCode: 200 }, JSON.stringify({ access_token: 'test-token', expires_in: 123 }));
+
+        // When called with a 5th arg of scopes (UAAUrl, ClientID, ClientSecret, refreshToken, scopes)
+        // Should fetch an access token requesting the scopes.
+        // In this case the client needs authorized_grant_types: refresh_token
+        uaa_util.getToken(url, clientId, clientSecret, null, scopes).then((token) => {
+            // Result should be our fake token
+            // Check that the UAA call was made correctly
+            expect(stub.calledOnce).to.be.true;
+            expect(stub.calledWith(match({ url }))).to.be.ok;
+            expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }}))).to.be.ok;
+            expect(stub.calledWith(match({ form: { scopes: scopes }}))).to.be.ok;
+            expect(token.access_token).to.equal('test-token');
+            done();
+        }).catch((err) => {
+            done(err);
+        });
+    })
 });

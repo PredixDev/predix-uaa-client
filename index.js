@@ -27,15 +27,15 @@ let client_token_cache = {};
 let pending_requests = {};
 
 // Helper method to create a key that can be used to represent a unique request
-const requestKey = (uaaUri, clientId, clientSecret, refreshToken) => {
+const requestKey = (uaaUri, clientId, clientSecret, refreshToken, scopes) => {
     const crypto = require('crypto');
     const hash = crypto.createHash('sha256');
-    hash.update(`${uaaUri}__${clientId}__${clientSecret}${refreshToken ? '__' + refreshToken : ''}`);
+    hash.update(`${uaaUri}__${clientId}__${clientSecret}${refreshToken ? '__' + refreshToken : ''}${scopes ? '__' + scopes : ''}`);
     return hash.digest('hex');
 };
 
 /**
- * This function provides 2 modes of operation.
+ * This function provides 3 modes of operation.
  *
  * 1. 3 args.
  *   This will fetch and cache an access token for the provided UAA client.
@@ -44,13 +44,16 @@ const requestKey = (uaaUri, clientId, clientSecret, refreshToken) => {
  * 2. 4 args.
  *   This will use the client credentials and the provided refresh token to get a new
  *   access token using the refresh token.  Access tokens will NOT be cached in this mode.
+ * 
+ * 3. 5 args.
+ *   This mode supports requesting a scopes (passed as comma separated string). 
  *
  *
  * @returns {promise} - A promise to provide a token.
  *                      Resolves with the token if successful (or already available).
  *                      Rejected with an error if an error occurs.
  */
-uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken) => {
+uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken, scopes) => {
 
     // Throw exception if required options are missing
     let missingArgs = [];
@@ -65,7 +68,7 @@ uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken) => {
     }
 
     // Pending request key
-    const request_key = requestKey(uaaUri, clientId, clientSecret, refreshToken);
+    const request_key = requestKey(uaaUri, clientId, clientSecret, refreshToken, scopes);
 
     // Check if an existing request is in progress for this client/user
     let makeRequest = false;
@@ -93,7 +96,7 @@ uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken) => {
     if(makeRequest) {
         let alreadyResolved = false;
         let cacheable = false;
-        const cache_key = `${uaaUri}__${clientId}`;
+        const cache_key = `${uaaUri}__${clientId}${scopes ? '__' + scopes : ''}`;
         let access_token = null;
         let form = {};
         const now = Date.now();
@@ -118,6 +121,9 @@ uaa_utils.getToken = (uaaUri, clientId, clientSecret, refreshToken) => {
             }
 
             form.grant_type = 'client_credentials';
+            if (scopes != null) {
+                form.scopes = scopes;
+            }
             cacheable = true;
         }
 
