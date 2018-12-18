@@ -39,6 +39,7 @@ describe('#UAA Tokens', () => {
             expect(stub.calledOnce).to.be.true;
             expect(stub.calledWith(match({ url }))).to.be.ok;
             expect(stub.calledWith(match({ form: { grant_type: 'client_credentials' }}))).to.be.ok;
+            expect(stub.neverCalledWith(match({ form: { scopes: 'scopes' }}))).to.be.true;
             expect(token.access_token).to.equal('test-token');
             done();
         }).catch((err) => {
